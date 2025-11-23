@@ -5,7 +5,6 @@
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
-
     .container{
         transform-style: preserve-3d;
     }
@@ -30,87 +29,142 @@
         transition: 0.9s ease;
     }
 
+    /* FRONT / QUESTION */
     .container .box .body .imgContainer{
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
         transform-style: preserve-3d;
         background-image: linear-gradient(to bottom right, #00C0FF, #4218B8);
         padding: 20px;
+        overflow: hidden;          /* cegah overflow */
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
     }
 
     .container .box .body .imgContainer img{
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
         object-fit: cover;
     }
 
+    /* BACK / ANSWER */
     .container .box .body .content{
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #333;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
         backface-visibility: hidden;
         transform-style: preserve-3d;
         transform: rotateY(180deg);
+        border-radius: 8px;
+
+        /* padding & layout supaya konten memenuhi kartu */
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+
+        /* pakai gradient seperti sisi depan */
+        background-image: linear-gradient(to bottom right, #0100EC, #FB36F4);
     }
 
     .container .box:hover .body{
         transform: rotateY(180deg);
     }
 
-    .container .box .body .content div{
-        transform-style: preserve-3d;
-        padding: 20px;
-        width: 100%;
-        height: 100%;
-        background-image: linear-gradient(to bottom right, #0100EC, #FB36F4);
-        transform: translateZ(100px);
+    /* Bungkus judul + isi jawaban */
+    .answer-wrap{
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        height: 100%;          /* penuhi tinggi kartu */
     }
 
-    .container .box .body .content div h3{
-        letter-spacing: 1px;
+    /* Anti-overflow teks umum */
+    .card-text-wrap{
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        margin: 0;
     }
+
+    /* Teks pertanyaan dibatasi agar rapi */
+    .front-text{
+        /* pilih salah satu: clamp baris atau scroll */
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 8;
+        overflow: hidden;
+        line-height: 1.4;
+        font-size: clamp(0.95rem, 2.4vw, 1.05rem);
+        color: #fff;
+    }
+
+    /* Teks jawaban mengisi ruang tersisa */
+    .answer-text{
+        flex: 1;
+        overflow: auto;
+        line-height: 1.35;
+        font-size: clamp(2rem, 4vw, 2rem); /* ← Dulu 1rem–1.35rem, sekarang naik */
+        color: #fff;
+    }
+
+    .answer-title{ font-size: 1.1rem; color:#fff; }
 </style>
 
 <div class="container d-flex align-items-center justify-content-center flex-wrap">
     @if($card)
-        <div class="box">
-            <div class="body">
-                <div class="imgContainer">
-                    <h3 class="text-white fs-5">Question</h3>
-                    <p class="fs-6 text-white">{{ $card->cards_question }}</p>
-                </div>
-                <div class="content d-flex flex-column align-items-center justify-content-center">
-                    <div>
-                        <h3 class="text-white fs-5">Answer</h3>
-                        <p class="fs-6"><h1 class="text-white">{{ $card->cards_answer }}</h1></p>
+        <div class="d-flex flex-column align-items-center">
+            <!-- Cards left -->
+            <div class="d-flex justify-content-center align-items-center mb-3 w-100">
+                <span class="text-center">Cards left: {{ $left }}</span>
+            </div>
+
+            <!-- Kartu tanya/jawab -->
+            <div class="box">
+                <div class="body">
+                    <!-- Front / Question -->
+                    <div class="imgContainer">
+                        <h3 class="text-white fs-5 mb-1">Question</h3>
+                        <p class="card-text-wrap front-text">
+                            {{ $card->cards_question }}
+                        </p>
+                    </div>
+
+                    <!-- Back / Answer -->
+                    <div class="content">
+                        <div class="answer-wrap">
+                            <h3 class="answer-title mb-1">Answer</h3>
+
+                            @php
+                                // Ambil jawaban lalu sisipkan <br> sebelum "(" pertama
+                                $ans = $card->cards_answer ?? '';
+                                $ans = preg_replace('/\s*\(/', '<br>(', $ans, 1);
+                            @endphp
+
+                            <div class="card-text-wrap answer-text">{!! $ans !!}</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     @else
-        <div>
-            Congratulation, you've finish the game!<br/>
+        <div class="text-center">
+            Congratulation, you've finished the game!<br/>
+            <a href="{{ url('replay/'.Request::segment(2).'/'.session('language_id')) }}" type="button" class="btn btn-outline-danger">Replay</a>
             <a href="{{ url('finish/'.Request::segment(2).'/'.session('language_id')) }}" type="button" class="btn btn-outline-primary">Finish</a>
         </div>
     @endif
 </div>
 
-    <br>
+<br>
 
-    @if($card)
-        <div class="container bg-light">
-            <div class="col-md-12 text-center">
-                <a href="{{ url("/next/".Request::segment(2)."/".@$card->cards_id) }}" type="button" class="btn btn-outline-primary">Next</a>
-            </div>
+@if($card)
+    <div class="container bg-light">
+        <div class="col-md-12 text-center">
+            <a href="{{ url('/next/'.Request::segment(2).'/'.@$card->cards_id) }}" type="button" class="btn btn-outline-primary">Next</a>
         </div>
-    @endif
+    </div>
+@endif
 @endsection

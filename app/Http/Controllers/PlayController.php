@@ -32,10 +32,12 @@ class PlayController extends Controller
         $category = Category::find($id);
         if($category->categories_type == 1){
             $card = Card::where('cards_categories_id', $id)->where('card_status','!=','1')->inRandomOrder()->first();
+            $left = count(Card::where('cards_categories_id', $id)->where('card_status','!=','1')->get());
         }else{
             $card = Card::where('cards_categories_id', $id)->orderBy('cards_id', 'asc')->first();
+            $left = count(Card::where('cards_categories_id', $id)->get());
         }
-        return view('play.play',compact('card'));
+        return view('play.play',compact('card','left'));
     }
 
     function next($category_id, $card_id)
@@ -46,13 +48,14 @@ class PlayController extends Controller
         $category = Category::find($category_id);
         if($category->categories_type == 1){
             $card = Card::where('cards_categories_id', $category_id)->where('card_status','!=','1')->inRandomOrder()->first();
+            $left = count(Card::where('cards_categories_id', $category_id)->where('card_status','!=','1')->get());
         }else{
             $card = Card::where('cards_categories_id', $category_id)->where('card_status','!=','1')->orderBy('cards_id', 'asc')->first();
+            $left = count(Card::where('cards_categories_id', $category_id)->where('card_status','!=','1')->get());
         }
-        // dd($category->categories_languages_id);
         session(['language_id' => $category->categories_languages_id]);
         $languages = Language::orderBy('languages_name', 'asc')->get();
-        return view('play.play',compact('languages','card'));
+        return view('play.play',compact('languages','card','left'));
     }
 
     /**
@@ -66,6 +69,22 @@ class PlayController extends Controller
         $language = Language::find($id);
         $categories = Category::where('categories_languages_id',$id)->orderBy('categories_name', 'asc')->get();
         return view('play.categories',compact('language','categories'));
+    }
+
+    function replay($categories_id, $language_id)
+    {
+        DB::table('cards')
+              ->where('cards_categories_id', $categories_id)
+              ->update(['card_status' => 0]);
+        $category = Category::find($categories_id);
+        if($category->categories_type == 1){
+            $card = Card::where('cards_categories_id', $categories_id)->where('card_status','!=','1')->inRandomOrder()->first();
+            $left = count(Card::where('cards_categories_id', $categories_id)->where('card_status','!=','1')->get());
+        }else{
+            $card = Card::where('cards_categories_id', $categories_id)->orderBy('cards_id', 'asc')->first();
+            $left = count(Card::where('cards_categories_id', $categories_id)->get());
+        }
+        return view('play.play',compact('card','left'));
     }
 
     function finish($categories_id, $language_id)
