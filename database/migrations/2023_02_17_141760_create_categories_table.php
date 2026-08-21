@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('categories_languages_id');
             $table->foreign('categories_languages_id')->references('languages_id')->on('languages');
             $table->string('categories_name')->length(50);
+            $table->unsignedTinyInteger('categories_type')->default(1);
             $table->timestamps();
         });
     }
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('cards_group');
+        Schema::dropIfExists('categories');
     }
 };

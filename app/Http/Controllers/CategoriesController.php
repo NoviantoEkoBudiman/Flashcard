@@ -19,7 +19,7 @@ class CategoriesController extends Controller
         $validated = $this->validate($request,[
             'categories_languages_id'   =>  'required',
             'categories_name'           =>  'required',
-            'categories_type'           =>  'required'
+            'categories_type'           =>  'required|integer|in:1,2'
         ],
         [
             'categories_languages_id.required'   =>  'Language id can\'t be null',
