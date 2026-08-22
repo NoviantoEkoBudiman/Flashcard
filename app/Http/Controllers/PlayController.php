@@ -27,8 +27,9 @@ class PlayController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
+        $playMode = $this->getPlayMode($request);
         $category = Category::find($id);
         if($category->categories_type == 1){
             $card = Card::where('cards_categories_id', $id)->where('card_status','!=','1')->inRandomOrder()->first();
@@ -37,11 +38,12 @@ class PlayController extends Controller
             $card = Card::where('cards_categories_id', $id)->orderBy('cards_id', 'asc')->first();
             $left = count(Card::where('cards_categories_id', $id)->get());
         }
-        return view('play.play',compact('card','left'));
+        return view('play.play',compact('card','left', 'playMode'));
     }
 
-    function next($category_id, $card_id)
+    function next(Request $request, $category_id, $card_id)
     {
+        $playMode = $this->getPlayMode($request);
         $card = Card::find($card_id);
         $card->card_status = 1;
         $card->save();
@@ -55,7 +57,7 @@ class PlayController extends Controller
         }
         session(['language_id' => $category->categories_languages_id]);
         $languages = Language::orderBy('languages_name', 'asc')->get();
-        return view('play.play',compact('languages','card','left'));
+        return view('play.play',compact('languages','card','left', 'playMode'));
     }
 
     /**
@@ -71,8 +73,9 @@ class PlayController extends Controller
         return view('play.categories',compact('language','categories'));
     }
 
-    function replay($categories_id, $language_id)
+    function replay(Request $request, $categories_id, $language_id)
     {
+        $playMode = $this->getPlayMode($request);
         DB::table('cards')
               ->where('cards_categories_id', $categories_id)
               ->update(['card_status' => 0]);
@@ -84,7 +87,7 @@ class PlayController extends Controller
             $card = Card::where('cards_categories_id', $categories_id)->orderBy('cards_id', 'asc')->first();
             $left = count(Card::where('cards_categories_id', $categories_id)->get());
         }
-        return view('play.play',compact('card','left'));
+        return view('play.play',compact('card','left', 'playMode'));
     }
 
     function finish($categories_id, $language_id)
@@ -95,5 +98,12 @@ class PlayController extends Controller
         $categories = Category::where('categories_languages_id',$language_id)->orderBy('categories_name', 'asc')->get();
         $language = Language::where("languages_id",$categories[0]->categories_languages_id)->first();
         return view('play.categories',compact('language','categories'));
+    }
+
+    private function getPlayMode(Request $request)
+    {
+        return $request->query('mode') === 'answer-first'
+            ? 'answer-first'
+            : 'question-first';
     }
 }

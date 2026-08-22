@@ -17,7 +17,16 @@
                 <tr>
                   <td>{{ $key+1 }}</td>
                   <td>{{ $category->categories_name }}</td>
-                  <td><a href="{{ route('play.show',$category->categories_id) }}" class="btn btn-sm btn-outline-primary"><span data-feather="command" class="align-text-bottom"></span> Play this card</a></td>
+                  <td>
+                    <div class="d-flex flex-wrap gap-2">
+                      <a href="{{ route('play.show', ['play' => $category->categories_id, 'mode' => 'question-first']) }}" class="btn btn-sm btn-outline-primary">
+                        <span data-feather="help-circle" class="align-text-bottom"></span> Question First
+                      </a>
+                      <a href="{{ route('play.show', ['play' => $category->categories_id, 'mode' => 'answer-first']) }}" class="btn btn-sm btn-outline-success">
+                        <span data-feather="message-circle" class="align-text-bottom"></span> Answer First
+                      </a>
+                    </div>
+                  </td>
                 </tr>
               @endforeach
             </tbody>

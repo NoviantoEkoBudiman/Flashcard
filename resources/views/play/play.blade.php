@@ -124,26 +124,32 @@
             <!-- Kartu tanya/jawab -->
             <div class="box">
                 <div class="body">
-                    <!-- Front / Question -->
+                    @php
+                        // Ambil jawaban lalu sisipkan <br> sebelum "(" pertama
+                        $ans = $card->cards_answer ?? '';
+                        $ans = preg_replace('/\s*\(/', '<br>(', $ans, 1);
+                        $answerFirst = $playMode === 'answer-first';
+                    @endphp
+
+                    <!-- Front -->
                     <div class="imgContainer">
-                        <h3 class="text-white fs-5 mb-1">Question</h3>
-                        <p class="card-text-wrap front-text">
-                            {{ $card->cards_question }}
-                        </p>
+                        <h3 class="text-white fs-5 mb-1">{{ $answerFirst ? 'Answer' : 'Question' }}</h3>
+                        @if($answerFirst)
+                            <div class="card-text-wrap answer-text">{!! $ans !!}</div>
+                        @else
+                            <p class="card-text-wrap front-text">{{ $card->cards_question }}</p>
+                        @endif
                     </div>
 
-                    <!-- Back / Answer -->
+                    <!-- Back -->
                     <div class="content">
                         <div class="answer-wrap">
-                            <h3 class="answer-title mb-1">Answer</h3>
-
-                            @php
-                                // Ambil jawaban lalu sisipkan <br> sebelum "(" pertama
-                                $ans = $card->cards_answer ?? '';
-                                $ans = preg_replace('/\s*\(/', '<br>(', $ans, 1);
-                            @endphp
-
-                            <div class="card-text-wrap answer-text">{!! $ans !!}</div>
+                            <h3 class="answer-title mb-1">{{ $answerFirst ? 'Question' : 'Answer' }}</h3>
+                            @if($answerFirst)
+                                <p class="card-text-wrap front-text">{{ $card->cards_question }}</p>
+                            @else
+                                <div class="card-text-wrap answer-text">{!! $ans !!}</div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -152,7 +158,7 @@
     @else
         <div class="text-center">
             Congratulation, you've finished the game!<br/>
-            <a href="{{ url('replay/'.Request::segment(2).'/'.session('language_id')) }}" type="button" class="btn btn-outline-danger">Replay</a>
+            <a href="{{ route('replay', ['categories_id' => Request::segment(2), 'language_id' => session('language_id'), 'mode' => $playMode]) }}" type="button" class="btn btn-outline-danger">Replay</a>
             <a href="{{ url('finish/'.Request::segment(2).'/'.session('language_id')) }}" type="button" class="btn btn-outline-primary">Finish</a>
         </div>
     @endif
@@ -163,7 +169,7 @@
 @if($card)
     <div class="container bg-light">
         <div class="col-md-12 text-center">
-            <a href="{{ url('/next/'.Request::segment(2).'/'.@$card->cards_id) }}" type="button" class="btn btn-outline-primary">Next</a>
+            <a href="{{ route('next', ['id_category' => Request::segment(2), 'id_language' => $card->cards_id, 'mode' => $playMode]) }}" type="button" class="btn btn-outline-primary">Next</a>
         </div>
     </div>
 @endif
