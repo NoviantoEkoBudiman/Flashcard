@@ -14,9 +14,11 @@ return new class extends Migration
     public function up()
     {
         Schema::create('languages', function (Blueprint $table) {
-            $table->id();
+            $table->id('languages_id');
+            $table->foreignId('user_id')->constrained();
             $table->string('languages_name')->length(16);
             $table->timestamps();
+            $table->unique(['user_id', 'languages_name'], 'languages_user_name_unique');
         });
     }
 

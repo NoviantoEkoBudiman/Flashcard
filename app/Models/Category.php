@@ -11,4 +11,14 @@ class Category extends Model
 
     protected $primaryKey = "categories_id";
     protected $table = "categories";
+
+    public function language()
+    {
+        return $this->belongsTo(Language::class, 'categories_languages_id');
+    }
+
+    public function cards()
+    {
+        return $this->hasMany(Card::class, 'cards_categories_id');
+    }
 }

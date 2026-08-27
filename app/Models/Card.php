@@ -11,4 +11,9 @@ class Card extends Model
 
     protected $primaryKey = "cards_id";
     protected $table = "cards";
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'cards_categories_id');
+    }
 }

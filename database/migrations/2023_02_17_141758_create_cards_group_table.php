@@ -15,7 +15,10 @@ return new class extends Migration
     {
         Schema::create('cards_group', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('card_group_language_id')->constrained('languages');
+            $table->unsignedBigInteger('card_group_language_id');
+            $table->foreign('card_group_language_id')
+                ->references('languages_id')
+                ->on('languages');
             $table->timestamps();
         });
     }

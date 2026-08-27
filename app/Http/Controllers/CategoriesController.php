@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Language;
 use App\Models\Category;
+use Illuminate\Validation\Rule;
 
 class CategoriesController extends Controller
 {
@@ -17,7 +18,12 @@ class CategoriesController extends Controller
     public function store(Request $request)
     {
         $validated = $this->validate($request,[
-            'categories_languages_id'   =>  'required',
+            'categories_languages_id' => [
+                'required',
+                Rule::exists('languages', 'id')->where(function ($query) {
+                    return $query->where('user_id', auth()->id());
+                }),
+            ],
             'categories_name'           =>  'required',
             'categories_type'           =>  'required|integer|in:1,2'
         ],
@@ -27,21 +33,15 @@ class CategoriesController extends Controller
             'categories_type.required'           =>  'Category\'s type  can\'t be null'
         ]);
 
-        if($validated){    
-            $category = new Category;
-            $category->categories_languages_id  = $request->categories_languages_id;
-            $category->categories_name  = $request->categories_name;
-            $category->categories_type  = $request->categories_type;
-    
-            $hasil = $category->save();
-            return redirect()
-                    ->route('category.show', $request->categories_languages_id)
-                    ->with('success', 'Kategori '.$category->categories_name.' berhasil ditambahkan');
-        }else{
-            return redirect()
-                    ->route('category.show', $request->categories_languages_id)
-                    ->withErrors('failed', 'Kategori '.$category->categories_name.' gagal ditambahkan');
-        }
+        $category = new Category;
+        $category->categories_languages_id = $validated['categories_languages_id'];
+        $category->categories_name = $validated['categories_name'];
+        $category->categories_type = $validated['categories_type'];
+        $category->save();
+
+        return redirect()
+                ->route('category.show', $validated['categories_languages_id'])
+                ->with('success', 'Kategori '.$category->categories_name.' berhasil ditambahkan');
     }
 
     /**
@@ -52,8 +52,8 @@ class CategoriesController extends Controller
      */
     public function show($id)
     {
-        $language = Language::find($id);
-        $categories = Category::where('categories_languages_id', $id)->orderBy('categories_name', 'asc')->get();
+        $language = Language::where('user_id', auth()->id())->findOrFail($id);
+        $categories = $language->categories()->orderBy('categories_name', 'asc')->get();
         return view('category.detail',compact('language','categories'));
     }
 }

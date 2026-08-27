@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Language;
+use Illuminate\Validation\Rule;
 
 class LanguageController extends Controller
 {
@@ -15,7 +16,10 @@ class LanguageController extends Controller
     
     public function language()
     {
-        $languages = Language::orderBy('languages_name', 'asc')->get();
+        $languages = auth()->user()
+            ->languages()
+            ->orderBy('languages_name', 'asc')
+            ->get();
         return view('options', compact('languages'));
     }
 
@@ -37,25 +41,30 @@ class LanguageController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $this->validate($request,[
-            'languages_name'  =>  'required'
-        ],
-        [
-            'languages_name.required' => 'Language can\'t be null'
+        $request->merge([
+            'languages_name' => trim((string) $request->languages_name),
         ]);
 
-        if($validated){
-            $language = new Language;
-            $language->languages_name  = $request->languages_name;
-    
-            $hasil = $language->save();
-            return redirect()
-                    ->route('language_index')
-                    ->with('success', 'Data bahasa '.$language->languages_name.' berhasil ditambahkan');
-        }else{
-            return redirect()
-                    ->route('language_index')
-                    ->withErrors('failed', 'Data bahasa '.$language->languages_name.' gagal ditambahkan');
-        }
+        $validated = $this->validate($request,[
+            'languages_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('languages', 'languages_name')
+                    ->where(function ($query) {
+                        return $query->where('user_id', auth()->id());
+                    }),
+            ],
+        ],
+        [
+            'languages_name.required' => 'Language can\'t be null',
+            'languages_name.unique' => 'You already have a language with this exact name.',
+        ]);
+
+        $language = auth()->user()->languages()->create($validated);
+
+        return redirect()
+                ->route('language_index')
+                ->with('success', 'Data bahasa '.$language->languages_name.' berhasil ditambahkan');
     }
 }

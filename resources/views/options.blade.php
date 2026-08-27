@@ -18,7 +18,10 @@
             </div>
             <div class="modal-body">
               <p>Language Name:</p>
-              <input type="text" name="languages_name" class="form-control">
+              <input type="text" name="languages_name" value="{{ old('languages_name') }}" class="form-control" required maxlength="255">
+              @error('languages_name')
+                <div class="text-danger small mt-1">{{ $message }}</div>
+              @enderror
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -52,4 +55,12 @@
         </tbody>
       </table>
     </div>
+
+    @if ($errors->has('languages_name'))
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          new bootstrap.Modal(document.getElementById('exampleModal')).show();
+        });
+      </script>
+    @endif
 @endsection

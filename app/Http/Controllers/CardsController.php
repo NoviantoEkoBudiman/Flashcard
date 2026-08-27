@@ -18,8 +18,10 @@ class CardsController extends Controller
     {
         $validated = $this->validate($request,[
             'cards_categories_id'   =>  'required',
-            'cards_question'         =>  'required',
-            'cards_answer'           =>  'required'
+            'cards_question'         =>  'required|array',
+            'cards_question.*'       =>  'required|string',
+            'cards_answer'           =>  'required|array',
+            'cards_answer.*'         =>  'required|string'
         ],
         [
             'cards_categories_id.required'  =>  'Id Categories can\'t be null',
@@ -27,23 +29,19 @@ class CardsController extends Controller
             'cards_answer.required'          =>  'Card\'s answer  can\'t be null'
         ]);
         
-        if($validated){    
-            foreach($request->cards_question as $key=>$item){
-                $card = new Card;
-                $card->cards_categories_id  = $request->cards_categories_id;
-                $card->cards_question       = $request->cards_question[$key];
-                $card->cards_answer         = $request->cards_answer[$key];
-                $card->save();
-            }
-    
-            return redirect()
-                    ->route('card.show',$request->cards_categories_id)
-                    ->with('success', 'Data kartu berhasil ditambahkan');
-        }else{
-            return redirect()
-                    ->route('card.show',$request->cards_categories_id)
-                    ->withErrors('failed', 'Data kartu gagal ditambahkan');
+        $category = $this->ownedCategory($validated['cards_categories_id']);
+
+        foreach($validated['cards_question'] as $key => $question){
+            $card = new Card;
+            $card->cards_categories_id = $category->categories_id;
+            $card->cards_question = $question;
+            $card->cards_answer = $validated['cards_answer'][$key];
+            $card->save();
         }
+
+        return redirect()
+                ->route('card.show', $category->categories_id)
+                ->with('success', 'Data kartu berhasil ditambahkan');
     }
 
     /**
@@ -54,8 +52,8 @@ class CardsController extends Controller
      */
     public function show($id)
     {
-        $category = Category::find($id);
-        $cards  = Card::where('cards_categories_id', $category->categories_id)->get();
+        $category = $this->ownedCategory($id);
+        $cards = $category->cards()->get();
         return view('card.detail',compact('category','cards'));
     }
 
@@ -67,12 +65,12 @@ class CardsController extends Controller
      */
     public function edit($id)
     {
-        $cards  = Card::where('cards_id', $id)->first();
+        $cards = $this->ownedCard($id);
     }
 
     public function edit_card($id)
     {
-        $card = Card::where('cards_id', $id)->first();
+        $card = $this->ownedCard($id);
         return response()->json([
             "cards_id"              => $card->cards_id,
             "cards_categories_id"   => $card->cards_categories_id,
@@ -82,13 +80,19 @@ class CardsController extends Controller
     }
 
     public function update_card(Request $request){
-        $card = Card::find($request->cards_id);
-        $card->cards_question   = $request->cards_question;
-        $card->cards_answer     = $request->cards_answer;
+        $validated = $request->validate([
+            'cards_id' => ['required', 'integer'],
+            'cards_question' => ['required', 'string'],
+            'cards_answer' => ['required', 'string'],
+        ]);
+
+        $card = $this->ownedCard($validated['cards_id']);
+        $card->cards_question = $validated['cards_question'];
+        $card->cards_answer = $validated['cards_answer'];
         $card->update();
         
         return redirect()
-                ->route('card.show',$request->cards_categories_id);
+                ->route('card.show', $card->cards_categories_id);
     }
 
     /**
@@ -99,7 +103,7 @@ class CardsController extends Controller
      */
     public function destroy($id)
     {
-        $card = Card::find($id);
+        $card = $this->ownedCard($id);
         if($card){
             $delete = $card->delete();
             if($delete){
@@ -116,5 +120,19 @@ class CardsController extends Controller
                         ->back()
                         ->with('error', 'Data card gagal dihapus');
         }
+    }
+
+    private function ownedCategory($id)
+    {
+        return Category::whereHas('language', function ($query) {
+            $query->where('user_id', auth()->id());
+        })->findOrFail($id);
+    }
+
+    private function ownedCard($id)
+    {
+        return Card::whereHas('category.language', function ($query) {
+            $query->where('user_id', auth()->id());
+        })->findOrFail($id);
     }
 }
