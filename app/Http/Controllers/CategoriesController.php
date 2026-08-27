@@ -20,7 +20,7 @@ class CategoriesController extends Controller
         $validated = $this->validate($request,[
             'categories_languages_id' => [
                 'required',
-                Rule::exists('languages', 'id')->where(function ($query) {
+                Rule::exists('languages', 'languages_id')->where(function ($query) {
                     return $query->where('user_id', auth()->id());
                 }),
             ],

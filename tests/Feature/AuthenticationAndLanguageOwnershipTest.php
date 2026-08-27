@@ -81,4 +81,26 @@ class AuthenticationAndLanguageOwnershipTest extends TestCase
             ->get(route('category.show', $language->languages_id))
             ->assertNotFound();
     }
+
+    public function test_user_can_add_a_category_to_their_language(): void
+    {
+        $user = User::factory()->create();
+        $language = $user->languages()->create([
+            'languages_name' => 'Japanese '.uniqid(),
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('category.store'), [
+                'categories_languages_id' => $language->languages_id,
+                'categories_name' => 'Chapter 1',
+                'categories_type' => 1,
+            ])
+            ->assertRedirect(route('category.show', $language->languages_id));
+
+        $this->assertDatabaseHas('categories', [
+            'categories_languages_id' => $language->languages_id,
+            'categories_name' => 'Chapter 1',
+            'categories_type' => 1,
+        ]);
+    }
 }
