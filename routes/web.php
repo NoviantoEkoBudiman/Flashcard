@@ -39,7 +39,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('play', PlayController::class);
     Route::get('language_index', [LanguageController::class,"language"])->name('language_index');
     Route::get('select_category/{id}', [PlayController::class,"edit"])->name('select_category');
-    Route::get('next/{id_category}/{id_language}', [PlayController::class,"next"])->name('next');
+    Route::post('play/{category_id}/cards/{card_id}/assess', [PlayController::class, 'assess'])
+        ->name('play.assess');
     Route::get('replay/{categories_id}/{language_id}', [PlayController::class,"replay"])->name('replay');
     Route::get('finish/{categories_id}/{language_id}', [PlayController::class,"finish"])->name('finish');
     Route::get('card/edit_card/{id_card}', [CardsController::class,"edit_card"])->name('edit_card');

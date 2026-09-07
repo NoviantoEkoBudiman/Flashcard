@@ -25,6 +25,16 @@
                       <a href="{{ route('play.show', ['play' => $category->categories_id, 'mode' => 'answer-first']) }}" class="btn btn-sm btn-outline-success">
                         <span data-feather="message-circle" class="align-text-bottom"></span> Answer First
                       </a>
+                      @if($category->incorrect_cards_count > 0)
+                        <a href="{{ route('play.show', ['play' => $category->categories_id, 'mode' => 'question-first', 'scope' => 'incorrect']) }}" class="btn btn-sm btn-outline-danger">
+                          <span data-feather="refresh-cw" class="align-text-bottom"></span>
+                          Practice Incorrect Cards ({{ $category->incorrect_cards_count }})
+                        </a>
+                      @else
+                        <button type="button" class="btn btn-sm btn-outline-secondary" disabled>
+                          <span data-feather="check-circle" class="align-text-bottom"></span> No Incorrect Cards
+                        </button>
+                      @endif
                     </div>
                   </td>
                 </tr>

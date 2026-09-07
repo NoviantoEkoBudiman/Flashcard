@@ -19,7 +19,13 @@ return new class extends Migration
             $table->foreign('cards_categories_id')->references('categories_id')->on('categories');
             $table->string('cards_question');
             $table->string('cards_answer');
+            $table->boolean('card_status')->default(false);
+            $table->boolean('card_last_answer_correct')->nullable();
             $table->timestamps();
+            $table->index(
+                ['cards_categories_id', 'card_last_answer_correct', 'card_status'],
+                'cards_practice_filter_index'
+            );
         });
     }
 

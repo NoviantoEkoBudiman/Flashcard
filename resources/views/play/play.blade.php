@@ -118,7 +118,9 @@
         <div class="d-flex flex-column align-items-center">
             <!-- Cards left -->
             <div class="d-flex justify-content-center align-items-center mb-3 w-100">
-                <span class="text-center">Cards left: {{ $left }}</span>
+                <span class="text-center">
+                    {{ $studyScope === 'incorrect' ? 'Incorrect cards left' : 'Cards left' }}: {{ $left }}
+                </span>
             </div>
 
             <!-- Kartu tanya/jawab -->
@@ -157,8 +159,14 @@
         </div>
     @else
         <div class="text-center">
-            Congratulation, you've finished the game!<br/>
-            <a href="{{ route('replay', ['categories_id' => Request::segment(2), 'language_id' => session('language_id'), 'mode' => $playMode]) }}" type="button" class="btn btn-outline-danger">Replay</a>
+            @if($studyScope === 'incorrect' && $deckSize === 0)
+                Great job! There are no incorrect cards to practice.<br/>
+            @else
+                Congratulations, you've completed this practice session!<br/>
+            @endif
+            @if($deckSize > 0)
+                <a href="{{ route('replay', ['categories_id' => Request::segment(2), 'language_id' => session('language_id'), 'mode' => $playMode, 'scope' => $studyScope]) }}" type="button" class="btn btn-outline-danger">Practice Again</a>
+            @endif
             <a href="{{ url('finish/'.Request::segment(2).'/'.session('language_id')) }}" type="button" class="btn btn-outline-primary">Finish</a>
         </div>
     @endif
@@ -168,8 +176,23 @@
 
 @if($card)
     <div class="container bg-light">
-        <div class="col-md-12 text-center">
-            <a href="{{ route('next', ['id_category' => Request::segment(2), 'id_language' => $card->cards_id, 'mode' => $playMode]) }}" type="button" class="btn btn-outline-primary">Next</a>
+        <div class="col-md-12 d-flex flex-wrap justify-content-center gap-2">
+            <form method="POST" action="{{ route('play.assess', ['category_id' => Request::segment(2), 'card_id' => $card->cards_id]) }}">
+                @csrf
+                <input type="hidden" name="mode" value="{{ $playMode }}">
+                <input type="hidden" name="scope" value="{{ $studyScope }}">
+                <button type="submit" name="result" value="incorrect" class="btn btn-outline-danger">
+                    <span data-feather="x-circle" class="align-text-bottom"></span> I Got It Wrong
+                </button>
+            </form>
+            <form method="POST" action="{{ route('play.assess', ['category_id' => Request::segment(2), 'card_id' => $card->cards_id]) }}">
+                @csrf
+                <input type="hidden" name="mode" value="{{ $playMode }}">
+                <input type="hidden" name="scope" value="{{ $studyScope }}">
+                <button type="submit" name="result" value="correct" class="btn btn-outline-success">
+                    <span data-feather="check-circle" class="align-text-bottom"></span> I Got It Right
+                </button>
+            </form>
         </div>
     </div>
 @endif
