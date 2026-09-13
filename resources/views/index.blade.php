@@ -20,12 +20,21 @@
         <link rel="mask-icon" href="/docs/5.3/assets/img/favicons/safari-pinned-tab.svg" color="#712cf9">
         <link rel="icon" href="{{ asset('images/favicon.ico') }}">
         <meta name="theme-color" content="#712cf9">
-        <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script> -->
-        <script src="{{ asset('js/jquery.min.js'); }}"></script>
-        <!-- <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" /> -->
-        <link rel="stylesheet" href="{{ asset('css/jquery.dataTables.css'); }}" />
-        <!-- <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script> -->
-        <script src="{{ asset('js/jquery.dataTables.js'); }}"></script>
+        @php
+            $usesDataTables = request()->routeIs(
+                'language_index',
+                'category.show',
+                'card.show',
+                'play.index',
+                'select_category',
+                'finish'
+            );
+        @endphp
+        @if($usesDataTables)
+            <script src="{{ asset('js/jquery.min.js'); }}"></script>
+            <link rel="stylesheet" href="{{ asset('css/jquery.dataTables.css'); }}" />
+            <script src="{{ asset('js/jquery.dataTables.js'); }}"></script>
+        @endif
         <style>
             .bd-placeholder-img {
                 font-size: 1.125rem;
@@ -133,6 +142,17 @@
                 <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                     {{-- <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"> --}}
                     <br/>
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @elseif (session('failed'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('failed') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
                     @yield('main')
                     {{-- </div> --}}
                 </main>
@@ -140,36 +160,16 @@
         </div>
 
         <script src="{{ asset('js/bootstrap.bundle.min.js'); }}" integrity="" crossorigin="anonymous"></script>
-        <!-- <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" integrity="" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js" integrity="" crossorigin="anonymous"></script> -->
-        <script src="{{ asset('js/feather.min.js'); }}" integrity="" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js" integrity="" crossorigin="anonymous"></script>
+        <script src="{{ asset('js/feather.min.js'); }}" integrity="" crossorigin="anonymous"></script>
         <script src="{{ asset('js/dashboard.js'); }}"></script>
-        
-        <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        <script>
-            $(document).ready( function () {
-                $('#myTable').DataTable();
-            } );
-        </script>
-
-        @if (session('success'))
+        @if($usesDataTables)
             <script>
-                Swal.fire({
-                    position: 'top',
-                    icon: 'success',
-                    title: '{{ session("success") }}',
-                    showConfirmButton: false,
-                    timer: 1500
-                })
-            </script>
-        @elseif(session('failed'))
-            <script>
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: '{{ session("failed") }}'
-                })
+                $(document).ready(function () {
+                    $('#myTable').DataTable();
+                });
             </script>
         @endif
+
     </body>
 </html>

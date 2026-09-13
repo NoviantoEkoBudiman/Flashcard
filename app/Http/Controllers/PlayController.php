@@ -102,6 +102,7 @@ class PlayController extends Controller
 
         DB::table('cards')
               ->where('cards_categories_id', $categories_id)
+              ->where('card_status', '!=', 0)
               ->update(['card_status' => 0]);
         [$card, $left, $deckSize] = $this->getPracticeState($category, $studyScope);
 
@@ -122,6 +123,7 @@ class PlayController extends Controller
 
         DB::table('cards')
               ->where('cards_categories_id', $categories_id)
+              ->where('card_status', '!=', 0)
               ->update(['card_status' => 0]);
         $categories = $language->categories()
             ->withCount([
@@ -156,15 +158,20 @@ class PlayController extends Controller
             $deckQuery->where('card_last_answer_correct', false);
         }
 
-        $deckSize = (clone $deckQuery)->count();
-        $pendingQuery = $deckQuery->where('card_status', '!=', 1);
+        $deckSizeQuery = clone $deckQuery;
+        $pendingQuery = (clone $deckQuery)->where('card_status', '!=', 1);
         $left = (clone $pendingQuery)->count();
 
-        $card = $category->categories_type == 1
-            ? $pendingQuery->inRandomOrder()->first()
-            : $pendingQuery->orderBy('cards_id', 'asc')->first();
+        if ($left === 0) {
+            return [null, 0, $deckSizeQuery->count()];
+        }
 
-        return [$card, $left, $deckSize];
+        $pendingQuery->orderBy('cards_id', 'asc');
+        $card = $category->categories_type == 1
+            ? $pendingQuery->offset(random_int(0, $left - 1))->first()
+            : $pendingQuery->first();
+
+        return [$card, $left, $left];
     }
 
     private function resetPracticeProgress(Category $category, $studyScope)
@@ -175,6 +182,7 @@ class PlayController extends Controller
             $query->where('card_last_answer_correct', false);
         }
 
+        $query->where('card_status', '!=', 0);
         $query->update(['card_status' => 0]);
     }
 
