@@ -154,6 +154,13 @@
                     </div>
                 </div>
             </div>
+            <button type="button" id="toggle-meaning" class="btn btn-outline-primary"
+                    aria-expanded="false" aria-controls="card-meaning">
+                Show meaning
+            </button>
+            <div id="card-meaning" class="card-text-wrap text-center mt-3" hidden>
+                {{ filled($card->cards_meaning) ? $card->cards_meaning : 'No meaning available.' }}
+            </div>
         </div>
     @else
         <div class="text-center">
@@ -193,5 +200,15 @@
             </form>
         </div>
     </div>
+    <script>
+        const meaningButton = document.getElementById('toggle-meaning');
+        const cardMeaning = document.getElementById('card-meaning');
+
+        meaningButton.addEventListener('click', function () {
+            cardMeaning.hidden = !cardMeaning.hidden;
+            meaningButton.setAttribute('aria-expanded', String(!cardMeaning.hidden));
+            meaningButton.textContent = cardMeaning.hidden ? 'Show meaning' : 'Hide meaning';
+        });
+    </script>
 @endif
 @endsection
